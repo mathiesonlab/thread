@@ -24,9 +24,10 @@ This `recon.ped` file can be compared with the true ancestral haplotypes (known 
 Note that this software is under active development. Please contact Sara
 Mathieson (smathieson [at] haverford [dot] edu) with any questions.
 
+
 Contributors:
 
 * Kelly Finke
-* Michael Kourakos `mkourak1` / `MikeyManiac`
+* Michael Kourakos `mkourak1` / `MikeyManiac` 
 * Gabriela Brown `gabcbrown`
 * Sara Mathieson `saramathieson`
