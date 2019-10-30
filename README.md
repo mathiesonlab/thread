@@ -28,4 +28,5 @@ Contributors:
 
 * Kelly Finke
 * Michael Kourakos `mkourak1` / `MikeyManiac`
+* Gabriela Brown `gabcbrown`
 * Sara Mathieson `saramathieson`
