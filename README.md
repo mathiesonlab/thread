@@ -27,7 +27,7 @@ Mathieson (smathieson [at] haverford [dot] edu) with any questions.
 
 Contributors:
 
-* Kelly Finke
+* Kelly Finke `kellyfinke`
 * Michael Kourakos `mkourak1` / `MikeyManiac` 
 * Gabriela Brown `gabcbrown`
 * Sara Mathieson `saramathieson`
