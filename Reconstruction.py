@@ -58,18 +58,18 @@ class Reconstruction:
             ibds_certain = indv.get_IBDs()
             if len(ibds_certain) > 0:
                 # testing the grouping algorithm on genotyped individuals
-                groups, conflicts = IBDc.group_IBDs(ibds_certain, id, \
-                    self.ibd_dict)
-                # using the haplotypes for genotyped individuals!
-                #groups, conflicts = IBDc.initial_groups(ibds_certain, id, \
+                #groups, conflicts = IBDc.group_IBDs(ibds_certain, id, \
                 #    self.ibd_dict)
+                # using the haplotypes for genotyped individuals!
+                groups, conflicts = IBDc.initial_groups(ibds_certain, id, \
+                    self.ibd_dict)
 
                 # check we have two groups
                 if len(groups) != 2:
                     print('HUGE PROBLEM: genotyped individual', id, 'with', \
                         len(groups), 'groups')
-                    reco.group_conflicts_diagram(groups, conflicts, id, \
-                        self.chrom, self.chrom_len, "init")
+                    #reco.group_conflicts_diagram(groups, conflicts, id, \
+                    #    self.chrom, self.chrom_len, "init")
                     num_bad_recon += 1
             else:
                 print('HUGE PROBLEM: genotyped individual', id, 'with no IBDs')
@@ -120,9 +120,9 @@ class Reconstruction:
                         flag = "bad"
 
                     # flip a coin so we don't have so many images
-                    if random.random() < 0.1:
-                        reco.group_conflicts_diagram(groups, conflicts, id, \
-                            self.chrom, self.chrom_len, flag)
+                    #if random.random() < 0.1:
+                    #    reco.group_conflicts_diagram(groups, conflicts, id, \
+                    #        self.chrom, self.chrom_len, flag)
 
             # we want this so ancestral IDs matches ancestral groups
             else:
