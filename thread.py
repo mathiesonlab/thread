@@ -29,6 +29,8 @@ def parse_args(description):
         help="input json file (dictionary) of IBDs")
     parser.add_option("-p", "--ped_filename", type="string", \
         help="output .ped file of reconstructed invidiauls")
+    parser.add_option("-l", "--left_out", type="string", \
+        help="ID of left-out genotyped individual")
 
     mandatories = ["germ_filename", "struct_filename", "map_filename", \
         "json_filename"]
@@ -49,7 +51,7 @@ def main():
     ped = PedigreeTree(args.struct_filename)
 
     # leave one out approach (sequenced individual we wish to reconstruct)
-    left_out = []
+    left_out = [args.left_out]
 
     # construct IBDs data structures (type: list)
     IBDs = IBD.get_IBDs(args.germ_filename, left_out) # toggle to leave out
@@ -108,11 +110,11 @@ def main():
     print("Grouping IBDs from genotyped individuals...")
     reconstruction.initialize_genotyped()
 
-    # just testing grouping genotyped for now
+    # just testing grouping genotyped for now. SM: finished TODO remove
     # write out .ped file (optional)
-    if args.ped_filename != None:
-        reconstruction.write_vcf(args.ped_filename, True)
-    sys.exit()
+    #if args.ped_filename != None:
+    #    reconstruction.write_ped(args.ped_filename, True)
+    #sys.exit()
 
     # identify sources and add them to IBDs
     print("Identify sources for IBDs...")
@@ -180,7 +182,8 @@ def main():
 
     # write out .ped file (optional)
     if args.ped_filename != None:
-        reconstruction.write_ped(args.ped_filename)
+        # SM: only left-out for now
+        reconstruction.write_ped(args.ped_filename, False, args.left_out)
 
 if __name__ == "__main__":
     main()

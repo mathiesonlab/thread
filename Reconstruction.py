@@ -592,7 +592,7 @@ class Reconstruction:
 
         out_file.close()
 
-    def write_ped(self, out_filename, genotyped_only=False):
+    def write_ped(self, out_filename, genotyped_only=False, left_out=None):
         """
         For all non-genotyped individuals, write out the parts we could
         reconstruct to a PED-like file
@@ -606,9 +606,9 @@ class Reconstruction:
         for id in all_ids:
             indv = self.ped.indvs[id]
 
-            # either write out all genotyped or no genotyped
-            if (not indv.genotyped and not genotyped_only) or (indv.genotyped \
-                and genotyped_only):
+            # either write out all genotyped or no genotyped or write just one
+            if (not indv.genotyped and not genotyped_only and left_out == None) or (indv.genotyped \
+                and genotyped_only and left_out == None) or (left_out == id):
 
                 indv_lst = self.write_one(id, indv)
                 #print("indv_lst", indv_lst)
