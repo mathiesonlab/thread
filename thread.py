@@ -108,6 +108,12 @@ def main():
     print("Grouping IBDs from genotyped individuals...")
     reconstruction.initialize_genotyped()
 
+    # just testing grouping genotyped for now
+    # write out .ped file (optional)
+    if args.ped_filename != None:
+        reconstruction.write_vcf(args.ped_filename, True)
+    sys.exit()
+
     # identify sources and add them to IBDs
     print("Identify sources for IBDs...")
     reconstruction.identify_sources()

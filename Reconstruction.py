@@ -57,18 +57,19 @@ class Reconstruction:
             # uncertain right now)
             ibds_certain = indv.get_IBDs()
             if len(ibds_certain) > 0:
-                #groups, conflicts = IBDc.group_IBDs(ibds_certain, id, \
-                #    self.ibd_dict)
-                # using the haplotypes for genotyped individuals!
-                groups, conflicts = IBDc.initial_groups(ibds_certain, id, \
+                # testing the grouping algorithm on genotyped individuals
+                groups, conflicts = IBDc.group_IBDs(ibds_certain, id, \
                     self.ibd_dict)
+                # using the haplotypes for genotyped individuals!
+                #groups, conflicts = IBDc.initial_groups(ibds_certain, id, \
+                #    self.ibd_dict)
 
                 # check we have two groups
                 if len(groups) != 2:
                     print('HUGE PROBLEM: genotyped individual', id, 'with', \
                         len(groups), 'groups')
-                    '''reco.group_conflicts_diagram(groups, conflicts, id, \
-                        self.chrom, self.chrom_len, "init")'''
+                    reco.group_conflicts_diagram(groups, conflicts, id, \
+                        self.chrom, self.chrom_len, "init")
                     num_bad_recon += 1
             else:
                 print('HUGE PROBLEM: genotyped individual', id, 'with no IBDs')
@@ -558,7 +559,7 @@ class Reconstruction:
 
         return bad_ibds
 
-    def write_vcf(self, out_filename):
+    def write_vcf(self, out_filename, genotyped_only=False):
         """
         For all non-genotyped individuals, write out the parts we could
         reconstruct to a VCF-like file
@@ -571,8 +572,10 @@ class Reconstruction:
             #print(snp)
             allele_lst = []
             for id in all_ids:
-                # don't write out genotyped indvs
-                if not self.ped.indvs[id].genotyped:
+                indv = self.ped.indvs[id]
+
+                # either write out all genotyped or no genotyped
+                if (not indv.genotyped and not genotyped_only) or (indv.genotyped and genotyped_only):
 
                     # reconstructed: add snp if part of groups
                     if id in self.reconstruct_ids:
@@ -589,7 +592,7 @@ class Reconstruction:
 
         out_file.close()
 
-    def write_ped(self, out_filename):
+    def write_ped(self, out_filename, genotyped_only=False):
         """
         For all non-genotyped individuals, write out the parts we could
         reconstruct to a PED-like file
@@ -598,29 +601,38 @@ class Reconstruction:
 
         # loop through all indvs
         out_file = open(out_filename,'w')
+        #print("writing file\n\n")
 
         for id in all_ids:
             indv = self.ped.indvs[id]
 
-            # don't write out genotyped indvs
-            if not indv.genotyped:
+            # either write out all genotyped or no genotyped
+            if (not indv.genotyped and not genotyped_only) or (indv.genotyped \
+                and genotyped_only):
 
-                # for ped format
-                indv_lst = ["1", id, indv.p_id, indv.m_id, str(indv.sex), "-9"]
-
-                for snp in self.SNP_lst:
-
-                    # reconstructed: add snp if part of groups
-                    if id in self.reconstruct_ids:
-                        groups = self.reconstruct_groups[id]
-                        hap1 = groups[0].get_allele(snp)
-                        hap2 = groups[1].get_allele(snp)
-                        indv_lst.extend([hap1,hap2])
-
-                    # unreconstructed: add missing data
-                    else:
-                        indv_lst.extend(["?","?"])
-
+                indv_lst = self.write_one(id, indv)
+                #print("indv_lst", indv_lst)
                 out_file.write(" ".join(indv_lst) + "\n")
 
         out_file.close()
+
+    def write_one(self, id, indv):
+        # for ped format
+        indv_lst = ["1", id, indv.p_id, indv.m_id, str(indv.sex), "-9"]
+
+        for snp in self.SNP_lst:
+
+            # reconstructed: add snp if part of groups
+            if id in self.reconstruct_ids:
+                groups = self.reconstruct_groups[id]
+                hap1 = groups[0].get_allele(snp)
+                if len(groups) > 1:
+                    hap2 = groups[1].get_allele(snp)
+                indv_lst.extend([hap1,hap2])
+
+            # unreconstructed: add missing data
+            else:
+                indv_lst.extend(["?","?"])
+
+        #print("indv_lst2", indv_lst)
+        return indv_lst
