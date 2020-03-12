@@ -74,7 +74,7 @@ def group_conflicts_diagram(groups, conflicts, indv, CHROM, chrom_len, flag):
 
     # save according to flag (assumes a directory i.e. figs/chr21)
     if flag == "init":
-        figname = "figs/chr" + str(CHROM) + "/" +indv+"_pathLpng"
+        figname = "figs/chr" + str(CHROM) + "/" +indv+"_pathL.png"
     else:
         figname = "figs/chr" + str(CHROM) + "/" + flag + "/" +indv+"_pathL.png"
     if flag != "geno":
