@@ -33,13 +33,15 @@ def no_seq_descendants(indvs):
             continue # "parent" of founders and married-in
         descend = indv.descendants()
         no_seq = True
+        num_seq = 0
         for d in descend:
             if d.genotyped:
                 no_seq = False
+                num_seq += 1
         if no_seq and not indv.genotyped:
             no_seq_all.append(id)
         if not no_seq and indv.genotyped:
-            seq_geno.append(id)
+            seq_geno.append(id + ": " + str(num_seq))
 
-    print("seq geno", " ".join(seq_geno))
+    print("seq geno", "\n".join(seq_geno))
     return no_seq_all
