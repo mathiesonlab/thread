@@ -26,7 +26,7 @@ def parse_chrom(chrom_filename):
 def no_seq_descendants(indvs):
     """Find individuals who have no sequenced descendants (can't reconstruct)"""
     no_seq_all = []
-    no_seq_geno = [] # genotyped, but no genotyped descendants
+    seq_geno = [] # genotyped, with genotyped descendants
 
     for id,indv in indvs.items():
         if id == "0":
@@ -38,8 +38,8 @@ def no_seq_descendants(indvs):
                 no_seq = False
         if no_seq and not indv.genotyped:
             no_seq_all.append(id)
-        if no_seq and indv.genotyped:
-            no_seq_geno.append(id)
+        if not no_seq and indv.genotyped:
+            seq_geno.append(id)
 
-    print("no seq geno", no_seq_geno)
+    print("seq geno", " ".join(seq_geno))
     return no_seq_all
