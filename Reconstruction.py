@@ -91,6 +91,11 @@ class Reconstruction:
             indv = self.ped.indvs[id]
             ibds_test = indv.get_IBDs()
 
+            if id == '157':
+                print("IBDs placed in 157:", len(ibds_test))
+                for ibd in ibds_test:
+                    print("\t", ibd)
+
             if len(ibds_test) > 0:
 
                 # very important distinction! if reconstructed, try to add IBDs
