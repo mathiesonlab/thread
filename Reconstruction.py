@@ -17,6 +17,15 @@ import recombination_points as reco
 
 # TODO keep track of uncertain nodes
 
+BAD_IBDS = ["21 41566778 46353312 158.1",
+    "21 41566778 47006515 158.1",
+    "21 24704319 32810899 207.0",
+    "21 19600742 32810899 207.0",
+    "21 19600742 25506687 215.1",
+    "21 44740134 47006515 1157.0",
+    "21 43087708 47006515 158.1",
+    "21 19600742 24740241 101.0"]
+
 # globals
 MAX_CONFLICTS = 5
 PATH_THRESH = 100000 # if over this number of paths, ignore source for now
@@ -91,10 +100,10 @@ class Reconstruction:
             indv = self.ped.indvs[id]
             ibds_test = indv.get_IBDs()
 
-            if id == 'b':
+            '''if id == '157':
                 print("IBDs placed in b:", len(ibds_test))
                 for ibd in ibds_test:
-                    print("\t", ibd)
+                    print("\t", ibd)'''
 
             if len(ibds_test) > 0:
 
@@ -263,8 +272,10 @@ class Reconstruction:
                         input('enter')
 
                 # assign individuals this IBD
+                certain_ids = []
                 for a in certain_nodes:
                     cindv = a[0].indv
+                    certain_ids.append(cindv.id)
                     # if -1, don't know hap, so switch to 0 at this point only!
                     if a[1] == -1:
                         chap = "0"
@@ -274,6 +285,10 @@ class Reconstruction:
                     assert cindv.id in self.ped.indvs.keys()
                     cindv.add_ibd(chap+"1", ibd) # add IBD to indv ("1" certain)
                     ibd.set_hap(cindv.id, a[1])  # add indv to IBD as well
+
+                if str(ibd) in BAD_IBDS:
+                    print(ibd)
+                    print("super certain", certain_ids)
 
         print('perfect', perfect_count)
         print('no_sources_count', no_sources_count)
@@ -347,10 +362,10 @@ class Reconstruction:
 
                         # here (and elsewhere) I want to add indv to IBDs so
                         # that we can remove it later if necessary
-                        #certain_ids = []
+                        certain_ids = []
                         for a in certain_nodes:
                             cindv = a[0].indv
-                            #certain_ids.append(cindv.id)
+                            certain_ids.append(cindv.id)
                             # if -1, don't know hap, so switch to 0
                             if a[1] == -1:
                                 chap = "0"
@@ -362,6 +377,11 @@ class Reconstruction:
                             cindv.add_ibd(chap+"1", ibd)
                             # add indv to IBD as well
                             ibd.set_hap(cindv.id, a[1])
+
+                        # SM: TODO remove
+                        if str(ibd) in BAD_IBDS:
+                            print(ibd)
+                            print("certain", certain_ids)
 
                         # when only one source (i.e. not couple), add IBD to it
                         if "&" not in best_source:
