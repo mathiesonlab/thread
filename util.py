@@ -43,5 +43,5 @@ def no_seq_descendants(indvs):
         if not no_seq and indv.genotyped:
             seq_geno.append(id + ": " + str(num_seq))
 
-    print("seq geno", "\n".join(seq_geno))
+    #print("seq geno", "\n".join(seq_geno))
     return no_seq_all
