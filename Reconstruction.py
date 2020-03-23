@@ -378,11 +378,6 @@ class Reconstruction:
                             # add indv to IBD as well
                             ibd.set_hap(cindv.id, a[1])
 
-                        # SM: TODO remove
-                        if str(ibd) in BAD_IBDS:
-                            print(ibd)
-                            print("certain", certain_ids)
-
                         # when only one source (i.e. not couple), add IBD to it
                         if "&" not in best_source:
                             sindv = self.ped.indvs[best_source]
@@ -391,6 +386,13 @@ class Reconstruction:
 
                         rooted = True
                         ibd.change_source(best_source)
+
+                        # SM: TODO remove
+                        if str(ibd) in BAD_IBDS:
+                            print(ibd)
+                            print("\tsource:", ibd.get_curr_source())
+                            print("\tindvs:", ibd.get_indvs().keys())
+                            print("\tcertain:", certain_ids)
 
                     # if there was a conflict, reject this source and move on
                     else:
