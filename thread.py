@@ -97,6 +97,7 @@ def main():
     print("Genotyped:", num_geno)
     print("No genotyped descendants:", len(no_seqd))
     print("To reconstruct:", len(ancestral_ids))
+    print(ancestral_ids) # SM: to remove
     print("----------------")
 
     # finally, create a Reconstruction object that we will modify throughout
