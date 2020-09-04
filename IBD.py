@@ -7,7 +7,7 @@ Date: 10/27/19
 
 # python imports
 import json
-from tqdm import tqdm
+#from tqdm import tqdm
 
 class IBD:
     """

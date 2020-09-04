@@ -7,7 +7,7 @@ Date: 10/30/19
 
 # python imports
 import random
-from tqdm import tqdm
+#from tqdm import tqdm
 
 # our imports
 import IBD_content as IBDc

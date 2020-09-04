@@ -14,7 +14,7 @@ if os.environ.get('DISPLAY','') == '':
     mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-from tqdm import tqdm
+#from tqdm import tqdm
 from matplotlib import collections as mc
 
 def group_conflicts_diagram(groups, conflicts, indv, CHROM, chrom_len, flag):

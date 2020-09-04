@@ -11,7 +11,7 @@ import json
 from matplotlib import colors as mcolors
 import random
 import time
-from tqdm import tqdm
+#from tqdm import tqdm
 
 # our imports
 from IBD_Group import Chrom
