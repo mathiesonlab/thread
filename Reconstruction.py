@@ -254,7 +254,7 @@ class Reconstruction:
                     # make sure placing this ibd does not conflict with results
                     if not self.no_conflict(a[0].indv.id, ibd):
                         print('HUGE ISSUE: super certain IBD conflicts')
-                        input('enter')
+                        #input('enter')
 
                 # assign individuals this IBD
                 for a in certain_nodes:
@@ -401,6 +401,8 @@ class Reconstruction:
             # 3 main cases: "perfect: two strong groups", "mixed: two strong
             # groups + some small incorrectness", "mess: many groups"
             result, i, j = self.analyze_groups(groups)
+            # we need to sort again so the indices above match up
+            groups = sorted(groups, key=lambda g: len(g.ibds), reverse=True)
 
             if result == "perfect":
                 # flag individual as "good"
