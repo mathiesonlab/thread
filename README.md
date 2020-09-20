@@ -21,6 +21,12 @@ $ python3 thread.py -g example/toy_germline.match -s example/toy_pedigree.txt -m
 This `recon.ped` file can be compared with the true ancestral haplotypes (known in
     this simulated) example: `toy_anc.ped`.
 
+To create reproducible results, use the `PYTHONHASHSEED`. For example:
+
+```
+$ PYTHONHASHSEED=42 python3 thread.py -g example/toy_germline.match -s example/toy_pedigree.txt -m example/toy.map -j example/toy.json -p example/recon.ped
+```
+
 Note that this software is under active development. Please contact Sara
 Mathieson (smathieson [at] haverford [dot] edu) with any questions.
 
@@ -28,6 +34,6 @@ Mathieson (smathieson [at] haverford [dot] edu) with any questions.
 Contributors:
 
 * Kelly Finke `kellyfinke`
-* Michael Kourakos `mkourak1` / `MikeyManiac` 
+* Michael Kourakos `mkourak1` / `MikeyManiac`
 * Gabriela Brown `gabcbrown`
 * Sara Mathieson `saramathieson`
