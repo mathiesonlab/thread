@@ -28,7 +28,9 @@ def parse_args(description):
     parser.add_option("-j", "--json_filename", type="string", \
         help="input json file (dictionary) of IBDs")
     parser.add_option("-p", "--ped_filename", type="string", \
-        help="output .ped file of reconstructed invidiauls")
+        help="output .ped file of reconstructed individuals")
+    parser.add_option("-x", "--max_prob", action="store_true",dest="max_prob", \
+        help="include -x flag to change source assignment to max probability")
 
     mandatories = ["germ_filename", "struct_filename", "map_filename", \
         "json_filename"]
@@ -99,7 +101,7 @@ def main():
 
     # finally, create a Reconstruction object that we will modify throughout
     reconstruction = Reconstruction(IBDs, ibd_dict, ped, reconstruct_ids, \
-        ancestral_ids, chrom, SNP_lst)
+        ancestral_ids, chrom, SNP_lst, source_max_prob=args.max_prob)
 
     ############################################################################
     # FIRST: things we do only once

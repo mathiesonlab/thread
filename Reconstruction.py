@@ -24,7 +24,7 @@ PATH_THRESH = 100000 # if over this number of paths, ignore source for now
 class Reconstruction:
 
     def __init__(self, IBDs, ibd_dict, ped, reconstruct_ids, ancestral_ids, \
-        chrom, SNP_lst):
+        chrom, SNP_lst, source_max_prob=False):
         self.IBDs = IBDs
         self.ibd_dict = ibd_dict
         self.ped = ped
@@ -44,6 +44,9 @@ class Reconstruction:
         self.ancestral_groups = {}   # key: individual ID, value: list of groups
 
         self.all_conflicts = {}      # key: individual ID, value: conflicts
+
+        # source finding method
+        self.source_max_prob = source_max_prob
 
     def initialize_genotyped(self):
         """
@@ -315,9 +318,11 @@ class Reconstruction:
                     path_prob_same += 1
                 path_prob_denom += 1
 
-                # here is where we can make choices! right now: fewest paths
-                best_source = min_path
-                #best_source = max_path
+                # here is where we can make choices!
+                if self.source_max_prob:
+                    best_source = max_prob
+                else:
+                    best_source = min_path
 
                 # make sure we don't have too many paths
                 if sources[best_source].num_paths > PATH_THRESH:
