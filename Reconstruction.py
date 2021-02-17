@@ -44,6 +44,7 @@ class Reconstruction:
         self.ancestral_groups = {}   # key: individual ID, value: list of groups
 
         self.all_conflicts = {}      # key: individual ID, value: conflicts
+        self.pairwise_groups = {}  # key: (IBD group 1 id, IBD group 2 id), value: (group1's version, group2's version), (overlap, conflicts)
 
         # source finding method
         self.source_max_prob = source_max_prob
@@ -105,7 +106,7 @@ class Reconstruction:
                 # if not reconstructed, group from scratch
                 else:
                     groups, conflicts = IBDc.group_IBDs(ibds_test, id, \
-                        self.ibd_dict)
+                        self.ibd_dict, self.pairwise_groups)
                     self.ancestral_groups[id] = groups
                     self.all_conflicts[id] = conflicts
 
