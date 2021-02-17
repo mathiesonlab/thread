@@ -31,6 +31,12 @@ class AncestorNode:
         self.children.append(child)
         self.cohort.extend(child.cohort)
 
+    def has_child(self, child_id):
+        for cur_child in self.children:
+            if cur_child.indv.id == child_id:
+                return True
+        return False
+
     # OVERRIDE
     def __str__(self):
         children_str = ""

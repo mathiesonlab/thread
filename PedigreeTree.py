@@ -187,12 +187,13 @@ class PedigreeTree:
         """
         Recursively propogate any cohort additions upwards
         that is, in case grandparents have already been created
+        and child has been added to ancestor
         (only the case in cross-generational marriages)
         """
-        if type(indv.p) == Individual and indv.p.id in tree.keys():
+        if type(indv.p) == Individual and indv.p.id in tree.keys() and tree[indv.p.id].has_child(indv.id)::
             tree[indv.p.id].cohort.extend(cohort)
             self.propogate_cohort(tree, indv.p, cohort)
-        if type(indv.m) == Individual and indv.m.id in tree.keys():
+        if type(indv.m) == Individual and indv.m.id in tree.keys() and tree[indv.m.id].has_child(indv.id):
             tree[indv.m.id].cohort.extend(cohort)
             self.propogate_cohort(tree, indv.m, cohort)
 
