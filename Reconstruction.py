@@ -236,6 +236,15 @@ class Reconstruction:
             if len(ancestors.keys()) == num_bad:
                 no_sources_count += 1
 
+            """
+            Removing placing ibd into super certain individuals because
+            (1) computationally expensive
+            (2) make no impact on thread's output
+                - too few individuals qualify, meaning that too few segments are
+                assigned to these individuals and the grouping algorithm doesn't 
+                have much resources to work with.
+                - these individuals would come up in iteration 0 anyway.
+                
             # this finds "super certain" placements: individuals on all paths
             # from all sources
             if num_bad == 0:
@@ -271,6 +280,7 @@ class Reconstruction:
                     assert cindv.id in self.ped.indvs.keys()
                     cindv.add_ibd(chap+"1", ibd) # add IBD to indv ("1" certain)
                     ibd.set_hap(cindv.id, a[1])  # add indv to IBD as well
+            """
 
         print('perfect', perfect_count)
         print('no_sources_count', no_sources_count)
