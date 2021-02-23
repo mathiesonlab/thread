@@ -44,6 +44,7 @@ class Reconstruction:
         self.ancestral_groups = {}   # key: individual ID, value: list of groups
 
         self.all_conflicts = {}      # key: individual ID, value: conflicts
+        self.pairwise_groups = {}  # key: (IBD group 1 id, IBD group 2 id), value: (group1's version, group2's version), (overlap, conflicts)
 
         # source finding method
         self.source_max_prob = source_max_prob
@@ -105,7 +106,7 @@ class Reconstruction:
                 # if not reconstructed, group from scratch
                 else:
                     groups, conflicts = IBDc.group_IBDs(ibds_test, id, \
-                        self.ibd_dict)
+                        self.ibd_dict, self.pairwise_groups)
                     self.ancestral_groups[id] = groups
                     self.all_conflicts[id] = conflicts
 
@@ -236,6 +237,15 @@ class Reconstruction:
             if len(ancestors.keys()) == num_bad:
                 no_sources_count += 1
 
+            """
+            Removing placing ibd into super certain individuals because
+            (1) computationally expensive
+            (2) make no impact on thread's output
+                - too few individuals qualify, meaning that too few segments are
+                assigned to these individuals and the grouping algorithm doesn't 
+                have much resources to work with.
+                - these individuals would come up in iteration 0 anyway.
+                
             # this finds "super certain" placements: individuals on all paths
             # from all sources
             if num_bad == 0:
@@ -271,6 +281,7 @@ class Reconstruction:
                     assert cindv.id in self.ped.indvs.keys()
                     cindv.add_ibd(chap+"1", ibd) # add IBD to indv ("1" certain)
                     ibd.set_hap(cindv.id, a[1])  # add indv to IBD as well
+            """
 
         print('perfect', perfect_count)
         print('no_sources_count', no_sources_count)

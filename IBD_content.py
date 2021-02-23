@@ -11,7 +11,7 @@ import json
 from matplotlib import colors as mcolors
 import random
 import time
-#from tqdm import tqdm
+from tqdm import tqdm
 
 # our imports
 from IBD_Group import Chrom
@@ -31,43 +31,61 @@ def pairwise_conflicts(group, ibd, ibd_alleles):
     Compares bases in ibd (from json file) to bases in template (passed in as a
     dictionary). Returns the overlap and conflicts between template and ibd.
     """
-    template = group.template
 
-    # track the number of overlapping bases between template and ibd
     overlap = 0
-    conflicts = {} # dictionary: base -> (template allele, ibd allele)
-
+    conflicts = {}
+    template = group.template
     for base in ibd_alleles:
         if base in template:
             if(template[base] == ibd_alleles[base]):
                 overlap += 1
             else:
                 conflicts[base] = (template[base], ibd_alleles[base])
+
     return (overlap, conflicts)
 
-def pairwise_group_conflicts(group1, group2):
+
+def pairwise_group_conflicts(group1, group2,pairwise_groups_data):
     """
     Compares bases in two groups (from json file). Returns the number of
     overlapping SNPs (overlap) and the NUMBER of conflicts. Right now this does
     not add conflicts in colors to IBDs within the groups, but it could.
     """
-    overlap = 0
-    conflicts = 0
+    # check in conflict object first (reduce pairwise group conflicts calls)
 
-    for base in group1.template:
-        if base in group2.template:
-            if (group1.template[base] == group2.template[base]):
-                overlap += 1
-            else:
-                conflicts += 1
-    return (overlap, conflicts)
+    group1_id, group1_version = group1.get_group_template_id()
+    group2_id, group2_version = group2.get_group_template_id()
 
-def group_IBDs(ibds, indv, ibd_dict):
+    if group1_id > group2_id:
+        groups_id = (group1_id, group2_id)
+        groups_version = (group1_version, group2_version)
+    else:
+        groups_id = (group2_id, group1_id)
+        groups_version = (group2_version, group1_version)
+
+    # if the number of conflicts hasn't been counted for this group, or 
+    # if the dictionary store the conflict for the previous versions of the group's template
+    if not groups_id in pairwise_groups_data or pairwise_groups_data[groups_id][0] != groups_version:
+        overlap = 0
+        conflicts = 0
+
+        for base in group1.template:
+            if base in group2.template:
+                if group1.template[base] == group2.template[base]:
+                    overlap += 1
+                else:
+                    conflicts += 1
+
+        pairwise_groups_data[groups_id] = (groups_version, (overlap, conflicts))
+
+    return pairwise_groups_data[groups_id][1] # return (overlap, conflicts) part of the value
+
+def group_IBDs(ibds, indv, ibd_dict,pairwise_groups_data):
     """
     Groups the given IBDs into groups based on overlaps.
     Start with one group (two if we already have haploid data) with first IBD
-    for IBDs in overlap, add IBDs until number of conflcits reaches threshold
-    if conflcits between new ibd and group > threshold, start new group with new
+    for IBDs in overlap, add IBDs until number of conflicts reaches threshold
+    if conflicts between new ibd and group > threshold, start new group with new
     IBDs for all subsequent IBDs, check against both groups, etc
     """
 
@@ -85,7 +103,7 @@ def group_IBDs(ibds, indv, ibd_dict):
     # find stretches of homozygosity and keep homozygous groups separate
     homozygous = find_homozygous(ibds, ibd_dict)
     homoz_groups, remaining_ibds = make_homoz_groups(ibds, ibd_dict, \
-        homozygous, all_conflicts, group_colors)
+                                                     homozygous, all_conflicts, group_colors)
 
     # create initial heterozygous groups based on IBDs
     steady_state = False
@@ -93,7 +111,7 @@ def group_IBDs(ibds, indv, ibd_dict):
     while not steady_state:
         before = len(remaining_ibds)
         remaining_ibds = group_IBDs_helper(remaining_ibds, ibd_dict, \
-            homoz_groups, groups, all_conflicts, group_colors, True)
+                                           homoz_groups, groups, all_conflicts, group_colors, True, pairwise_groups_data)
         passes += 1
 
         # stop when we are no longer incorporating more IBDs
@@ -101,12 +119,12 @@ def group_IBDs(ibds, indv, ibd_dict):
             steady_state = True
 
     # using remaining IBDs to merge groups
-    all_groups, remaining_ibds = merge_groups(remaining_ibds, ibd_dict, \
-        homoz_groups, groups, all_conflicts, group_colors, indv)
+    all_groups, remaining_ibds = merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,
+                                              group_colors, indv, pairwise_groups_data)
 
     # try once more to add IBDs
     remaining_ibds = group_IBDs_helper(remaining_ibds, ibd_dict, [], \
-        all_groups, all_conflicts, group_colors, False)
+                                       all_groups, all_conflicts, group_colors, False, pairwise_groups_data)
 
     # final pass to merge groups (not using IBDs, based on group overlaps)
     steady_state = False
@@ -120,7 +138,11 @@ def group_IBDs(ibds, indv, ibd_dict):
             potentials = []
             for j in range(i+1, len(all_groups)):
                 group2 = all_groups[j]
-                overlap, conflicts = pairwise_group_conflicts(group1, group2)
+                has_possible_overlap = group1.start <= group2.end and group1.end >= group2.start
+                if has_possible_overlap:
+                    overlap,conflicts = pairwise_group_conflicts(group1, group2, pairwise_groups_data)
+                else:
+                    overlap, conflicts = 0,0
                 if overlap > GROUP_OVERLAP and conflicts < CONFLICT_MAX:
                     potentials.append([group2, overlap, j])
 
@@ -136,7 +158,7 @@ def group_IBDs(ibds, indv, ibd_dict):
             steady_state = True
 
     # final step to merge non-overlapping groups into haplotypes
-    all_groups = condense_groups(all_groups)
+    all_groups = condense_groups(all_groups, pairwise_groups_data)
 
     # hopefully we have used up all IBDs by this point
     if len(remaining_ibds) > 0:
@@ -145,9 +167,10 @@ def group_IBDs(ibds, indv, ibd_dict):
     # return all groups and conflicts between them
     return all_groups, all_conflicts
 
-def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,\
-    group_colors, indv):
-    """Use remaining IBDs (that hopefully overlap 2 groups) to merge groups"""
+def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,group_colors, indv,
+                 pairwise_groups_data):
+    """Use remaining IBDs (that hopefully overlap 2 groups) to merge groups
+    """
 
     # first duplicate homoz groups (need two of them)
     all_groups = homoz_groups + groups
@@ -162,7 +185,7 @@ def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,\
     while len(remaining_ibds) > 0 and not steady_state:
         remaining = []
         remaining_ibds = sorted(remaining_ibds, key=lambda ibd: len(ibd), \
-            reverse=True)
+                                reverse=True)
 
         for ibd in remaining_ibds:
 
@@ -173,7 +196,11 @@ def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,\
             matching_groups = []
 
             for group in all_groups:
-                overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                if has_possible_overlap:
+                    overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                else:
+                    overlap, conflicts = 0,{}
                 for conflict in conflicts.keys():
                     all_conflicts[ibd].append((conflict, group.color))
 
@@ -196,10 +223,15 @@ def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,\
                     matching_groups = [matching_groups[0], matching_groups[1]]
 
             if passes >= 1 and len(matching_groups) == 2 and matching_groups[0]\
-                != matching_groups[1]:
+                    != matching_groups[1]:
                 # TODO don't merge if we have too many conflicts
-                overlap, conflicts = pairwise_group_conflicts( \
-                    matching_groups[0], matching_groups[1])
+                has_possible_overlap = group1.start <= group2.end and group1.end >= group2.start
+                if has_possible_overlap:
+                    overlap,conflicts = pairwise_group_conflicts( \
+                    matching_groups[0], matching_groups[1], pairwise_groups_data)
+                else:
+                    overlap, conflicts = 0,0
+
                 # overlap may not be that high since IBD might span
                 if conflicts < CONFLICT_MAX:
 
@@ -247,7 +279,11 @@ def initial_groups(ibds, indv, ibd_dict):
 
         for group in groups:
             if group != None:
-                overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                if has_possible_overlap:
+                    overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                else:
+                    overlap, conflicts = 0,{}
                 for conflict in conflicts.keys():
                     all_conflicts[ibd].append((conflict, group.color))
         if hap == 0 or hap == 1:
@@ -267,12 +303,12 @@ def initial_groups(ibds, indv, ibd_dict):
     return groups, all_conflicts
 
 def group_IBDs_helper(ibds, ibd_dict, homoz_groups, groups, all_conflicts, \
-    group_colors, ignore_homoz):
+                      group_colors, ignore_homoz, pairwise_groups_data):
     """
     Runs one pass of trying to add IBDs to groups, saving those it hasn't added
     yet. Continue running this function until all IBDs are added. IBDs to be
-    careful about: those that overlap with homozygous regions (these create
-    false haplotypes) and those that can be added to multiple groups.
+    careful about: those that overlap with homozygous regions (these could create
+    false haplotypes: wrong combination) and those that can be added to multiple groups.
     """
     remaining_ibds = []
     ibds = sorted(ibds, key=lambda ibd: len(ibd), reverse=True)
@@ -298,8 +334,12 @@ def group_IBDs_helper(ibds, ibd_dict, homoz_groups, groups, all_conflicts, \
                 matches = 0
                 potentials = []
                 for group in groups:
-                    overlap, conflicts = pairwise_conflicts(group, ibd, \
-                        ibd_alleles)
+                    has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                    if has_possible_overlap:
+                        overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                    else:
+                        overlap, conflicts = 0,{}
+                    
                     for conflict in conflicts.keys():
                         all_conflicts[ibd].append((conflict, group.color))
 
@@ -320,7 +360,7 @@ def group_IBDs_helper(ibds, ibd_dict, homoz_groups, groups, all_conflicts, \
                     # TODO: after merge, return extra group color to the pool
                     if len(group_colors) == 0:
                         group_colors = dict(mcolors.BASE_COLORS, \
-                            **mcolors.CSS4_COLORS)
+                                            **mcolors.CSS4_COLORS)
                         group_colors = list(group_colors.keys())
 
                     new_group = IBD_Group(ibd, ibd_alleles, group_colors.pop(0))
@@ -434,7 +474,7 @@ def make_homoz_groups(ibds, ibd_dict, homozygous, all_conflicts, group_colors):
         g.homoz_stretches = [[g.start, g.end]]
     return filtered, remaining_ibds
 
-def condense_groups(all_groups):
+def condense_groups(all_groups, pairwise_groups_data):
     """
     Combines groups that have no conflicts. Important that we only combine one
     pair per iteration!
@@ -452,7 +492,11 @@ def condense_groups(all_groups):
             potentials = []
             for j in range(i+1, len(all_groups)):
                 group2 = all_groups[j]
-                overlap, conflicts = pairwise_group_conflicts(group1, group2)
+                has_possible_overlap = group1.start <= group2.end and group1.end >= group2.start
+                if has_possible_overlap:
+                    overlap,conflicts = pairwise_group_conflicts(group1, group2, pairwise_groups_data)
+                else:
+                    overlap, conflicts = 0,0
                 if conflicts == 0:
                     potentials.append(group2)
 
@@ -513,7 +557,7 @@ def add_IBDs(id, groups, ibds, ibd_dict, all_conflicts):
     """
     if len(groups) != 2:
         print("HUGE PROBLEM! reconstructed indv", id, "with", len(groups), \
-            "groups.")
+              "groups.")
 
     for ibd in ibds:
 
@@ -525,7 +569,11 @@ def add_IBDs(id, groups, ibds, ibd_dict, all_conflicts):
                 all_conflicts[ibd] = []
 
             for group in groups:
-                overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                if has_possible_overlap:
+                    overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
+                else:
+                    overlap, conflicts = 0,{}
                 for conflict in conflicts.keys():
                     all_conflicts[ibd].append((conflict, group.color))
                 if len(conflicts.keys()) < CONFLICT_MAX:

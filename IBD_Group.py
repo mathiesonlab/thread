@@ -4,6 +4,8 @@ Authors: Kelly Finke, Michael Kourakos, Sara Mathieson
 Date: 10/27/19
 """
 # DONE
+# python import
+from uuid import uuid4
 
 class IBD_Group:
     """Container object for a group of IBDs with a common sequence"""
@@ -25,6 +27,10 @@ class IBD_Group:
         self.secondary_colors = []
         self.homoz_stretches = [] # parts of the group that are homozygous
 
+        # generate an unique id for each group and keep track of the 
+        # group's latest version 
+        self.id = uuid4()
+        self.template_last_modified = 0
     # GETTERS
     def get_allele(self, base):
         """If base in template, return allele; else return ?"""
@@ -61,8 +67,15 @@ class IBD_Group:
         # existing base
         for base, allele in ibd_alleles.items():
             self.template[base] = allele
+       # as template is modified
+        self.template_last_modified +=1
+
         self.start = min(self.start, ibd.start)
         self.end = max(self.end, ibd.end)
+
+    # GETTERS
+    def get_group_template_id(self):
+        return self.id, self.template_last_modified
 
     def combine_with(self, group, override=False):
         """
@@ -83,6 +96,9 @@ class IBD_Group:
         for base, allele in group.template.items():
             # TODO should we be checking for conflicts somehow?
             self.template[base] = allele
+
+        # after merging this group with the other groups template
+        self.template_last_modified +=1
 
         # modify start and end, homoz_stretches, and colors
         self.start = min(self.start, group.start)
