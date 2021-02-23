@@ -11,7 +11,7 @@ import json
 from matplotlib import colors as mcolors
 import random
 import time
-from tqdm import tqdm
+#from tqdm import tqdm
 
 # our imports
 from IBD_Group import Chrom
@@ -63,7 +63,7 @@ def pairwise_group_conflicts(group1, group2,pairwise_groups_data):
         groups_id = (group2_id, group1_id)
         groups_version = (group2_version, group1_version)
 
-    # if the number of conflicts hasn't been counted for this group, or 
+    # if the number of conflicts hasn't been counted for this group, or
     # if the dictionary store the conflict for the previous versions of the group's template
     if not groups_id in pairwise_groups_data or pairwise_groups_data[groups_id][0] != groups_version:
         overlap = 0
@@ -196,7 +196,7 @@ def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,g
             matching_groups = []
 
             for group in all_groups:
-                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start
                 if has_possible_overlap:
                     overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
                 else:
@@ -279,7 +279,7 @@ def initial_groups(ibds, indv, ibd_dict):
 
         for group in groups:
             if group != None:
-                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start
                 if has_possible_overlap:
                     overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
                 else:
@@ -334,12 +334,12 @@ def group_IBDs_helper(ibds, ibd_dict, homoz_groups, groups, all_conflicts, \
                 matches = 0
                 potentials = []
                 for group in groups:
-                    has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                    has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start
                     if has_possible_overlap:
                         overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
                     else:
                         overlap, conflicts = 0,{}
-                    
+
                     for conflict in conflicts.keys():
                         all_conflicts[ibd].append((conflict, group.color))
 
@@ -569,7 +569,7 @@ def add_IBDs(id, groups, ibds, ibd_dict, all_conflicts):
                 all_conflicts[ibd] = []
 
             for group in groups:
-                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start 
+                has_possible_overlap = group.start <= ibd.end and group.end >= ibd.start
                 if has_possible_overlap:
                     overlap, conflicts = pairwise_conflicts(group, ibd, ibd_alleles)
                 else:
