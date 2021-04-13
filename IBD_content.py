@@ -225,7 +225,8 @@ def merge_groups(remaining_ibds, ibd_dict, homoz_groups, groups, all_conflicts,g
             if passes >= 1 and len(matching_groups) == 2 and matching_groups[0]\
                     != matching_groups[1]:
                 # TODO don't merge if we have too many conflicts
-                has_possible_overlap = group1.start <= group2.end and group1.end >= group2.start
+                has_possible_overlap = matching_groups[0].start <= matching_groups[1].end \
+                                         and matching_groups[0].end >= matching_groups[1].start
                 if has_possible_overlap:
                     overlap,conflicts = pairwise_group_conflicts( \
                     matching_groups[0], matching_groups[1], pairwise_groups_data)
